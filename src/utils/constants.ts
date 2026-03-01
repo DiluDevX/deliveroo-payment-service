@@ -22,6 +22,10 @@ export const ERROR_MESSAGES = {
   VALIDATION_FAILED: 'Validation failed',
   INTERNAL_SERVER_ERROR: 'An unexpected error occurred',
   RATE_LIMIT_EXCEEDED: 'Too many requests, please try again later',
+  PAYMENT_NOT_FOUND: 'Payment not found',
+  INVALID_PAYMENT_AMOUNT: 'Payment amount must be greater than zero',
+  INVALID_PAYMENT_METHOD: 'Invalid payment method. Must be one of: card, bank_transfer, crypto',
+  PAYMENT_NOT_REFUNDABLE: 'Only completed payments can be refunded',
 } as const;
 
 export const VALIDATION_PATTERNS = {

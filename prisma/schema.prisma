@@ -10,16 +10,21 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        String    @id @default(uuid())
-  firstName String
-  lastName  String
-  email     String    @unique
-  password  String
-  role      String    @default("user")
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+model Payment {
+  id            String    @id @default(uuid())
+  userId        String
+  orderId       String
+  amount        Decimal
+  currency      String    @default("USD")
+  status        String    @default("pending")
+  paymentMethod String
+  transactionId String?   @unique
+  metadata      Json?
+  deletedAt     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  @@index([email, deletedAt])
+  @@index([userId, status])
+  @@index([orderId])
+  @@index([transactionId])
 }
