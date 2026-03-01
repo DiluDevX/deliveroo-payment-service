@@ -1,0 +1,96 @@
+name: Deploy to EC2
+
+on:
+  workflow_dispatch:
+    inputs:
+      deploy_env:
+        description: 'Deployment environment'
+        required: true
+        type: choice
+        options:
+          - development
+          - production
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+
+jobs:
+  validate:
+    name: Validate Environment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate DEPLOY_ENV
+        run: |
+          if [[ "${{ github.event.inputs.deploy_env }}" != "development" && \
+                "${{ github.event.inputs.deploy_env }}" != "production" ]]; then
+            echo "ERROR: DEPLOY_ENV must be 'development' or 'production'"
+            exit 1
+          fi
+          echo "Deploying to: ${{ github.event.inputs.deploy_env }}"
+
+  build-and-push:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+    needs: validate
+    outputs:
+      image_uri: ${{ steps.image.outputs.uri }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag, and push Docker image
+        id: image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          IMAGE_URI=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker build -t $IMAGE_URI .
+          docker push $IMAGE_URI
+          echo "uri=$IMAGE_URI" >> $GITHUB_OUTPUT
+
+  deploy:
+    name: Deploy to EC2
+    runs-on: ubuntu-latest
+    needs: build-and-push
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            IMAGE_URI=${{ needs.build-and-push.outputs.image_uri }}
+            DEPLOY_ENV=${{ github.event.inputs.deploy_env }}
+
+            echo "Pulling image: $IMAGE_URI"
+            docker pull $IMAGE_URI
+
+            echo "Stopping existing container..."
+            docker stop app || true
+            docker rm app || true
+
+            echo "Starting new container for env: $DEPLOY_ENV"
+            docker run -d \
+              --name app \
+              --restart unless-stopped \
+              -p 3000:3000 \
+              --env-file /etc/app/.env.$DEPLOY_ENV \
+              $IMAGE_URI
+
+            echo "Deployment complete!"

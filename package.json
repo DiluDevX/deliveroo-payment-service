@@ -1,0 +1,60 @@
+{
+  "name": "nodejs-template",
+  "version": "1.0.0",
+  "description": "Production-ready TypeScript/Express microservice starter template",
+  "main": "dist/server.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "nodemon src/server.ts",
+    "start:development": "node dist/server.js",
+    "start:production": "node dist/server.js",
+    "lint:check": "eslint src",
+    "lint:fix": "eslint --fix src",
+    "format:check": "prettier --check .",
+    "format:fix": "prettier --write .",
+    "types:check": "tsc --noEmit",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate:new": "prisma migrate dev",
+    "prepare": "husky"
+  },
+  "keywords": [
+    "typescript",
+    "express",
+    "microservice",
+    "template"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "bcrypt": "^5.1.1",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "http-status-codes": "^2.3.0",
+    "jsonwebtoken": "^9.0.2",
+    "pino": "^9.6.0",
+    "pino-pretty": "^13.0.0",
+    "uuid": "^11.0.5",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.7.1",
+    "@commitlint/config-conventional": "^19.7.0",
+    "@eslint/js": "^9.21.0",
+    "@types/bcrypt": "^5.0.2",
+    "@types/express": "^5.0.0",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/node": "^22.13.5",
+    "@types/uuid": "^10.0.0",
+    "eslint": "^9.21.0",
+    "husky": "^9.1.7",
+    "nodemon": "^3.1.9",
+    "prettier": "^3.5.1",
+    "prisma": "^5.22.0",
+    "semantic-release": "^24.2.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.25.0"
+  }
+}
